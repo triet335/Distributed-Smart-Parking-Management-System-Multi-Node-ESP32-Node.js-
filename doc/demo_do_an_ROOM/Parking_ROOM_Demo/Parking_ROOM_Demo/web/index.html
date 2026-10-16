@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Bãi đỗ xe 4 hàng - Socket.IO ROOM</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font: 16px Arial, sans-serif; color: #1f2937; background: #f3f5f8;
+           max-width: 1200px; padding: 0 16px; margin: 24px auto; }
+    h1 { margin-bottom: 4px; } h2 { margin: 0 0 10px; }
+    .muted { color: #64748b; font-size: 14px; }
+    .panel, .stat, .banner { background: white; border: 1px solid #d6dfe9;
+                            border-radius: 10px; padding: 16px; margin: 12px 0; }
+    .banner.ok { background: #e5faeb; border-color: #9cdbad; }
+    .banner.warn { background: #fff4dd; border-color: #ecc578; }
+    .banner.danger { background: #ffe5e5; border-color: #eaa0a0; }
+    .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+    .stat strong { display: block; font-size: 30px; margin-top: 8px; }
+    .rows { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+    .slots { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin: 12px 0; }
+    .slot { text-align: center; padding: 14px 4px; border-radius: 6px; background: #e2e8f0; }
+    .slot.free { background: #dcfce7; } .slot.busy { background: #fed7aa; }
+    button { background: #246ac4; color: #fff; padding: 9px 12px; margin: 4px;
+             border: 0; border-radius: 6px; cursor: pointer; }
+    button.secondary { background: #59677d; }
+    button.danger { background: #b91c1c; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    .control-row { padding: 12px 0; border-bottom: 1px solid #e2e8f0; }
+    .control-row:last-child { border-bottom: 0; }
+    #notice { min-height: 22px; color: #1663aa; padding: 10px 0; }
+    #history { max-height: 290px; overflow: auto; padding-left: 22px; }
+    #history li { margin: 6px 0; }
+    @media(max-width:760px) { .rows {grid-template-columns:1fr;} .stats {grid-template-columns:repeat(2,1fr);} }
+  </style>
+</head>
+<body>
+  <h1>Bãi đỗ xe thông minh - Socket.IO ROOM</h1>
+  <p class="muted">4 hàng × 3 chỗ = 12 chỗ | Hàng 1,4: ESP32 thật | Hàng 2,3: giả lập</p>
+  <div id="connection" class="muted">Đang kết nối Server...</div>
+  <div id="banner" class="banner warn">Chưa nhận được dữ liệu.</div>
+
+  <div class="stats">
+    <div class="stat">Tổng chỗ<strong id="total">12</strong></div>
+    <div class="stat">Đã có xe<strong id="occupied">0</strong></div>
+    <div class="stat">Còn trống<strong id="free">0</strong></div>
+    <div class="stat">Chưa xác định<strong id="unknown">12</strong></div>
+  </div>
+
+  <main id="rows" class="rows"></main>
+
+  <section class="panel">
+    <h2>Thử nghiệm ROOM - gửi riêng từng ESP32</h2>
+    <p class="muted">Web gửi <code>control_device</code> tới Server; Server dùng <code>io.to('device_ESP32_xxx').emit('control', ...)</code>.</p>
+    <div id="roomControls"></div>
+    <div id="notice" aria-live="polite"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Lịch sử xe vào/ra và cảnh báo</h2>
+    <p class="muted">Xe vào/ra được suy ra từ thay đổi LDR hoặc mô phỏng; lịch sử chỉ lưu RAM và mất khi khởi động lại Server.</p>
+    <ul id="history"></ul>
+  </section>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const $ = id => document.getElementById(id);
+    const clock = ms => ms ? new Date(ms).toLocaleTimeString('vi-VN') : '--';
+    const label = value => value === 1 ? 'CÓ XE' : value === 0 ? 'TRỐNG' : 'CHƯA RÕ';
+    const fireLabel = value => value === null ? 'Chưa rõ' : value ? 'CÓ CHÁY' : 'An toàn';
+    const onOff = value => value === null ? '?' : value ? 'ON' : 'OFF';
+
+    function send(deviceId, action, extra = {}) {
+      if (!socket.connected) return;
+      socket.emit('control_device', Object.assign({ deviceId, action }, extra));
+    }
+    function element(tag, value, css = '') {
+      const node = document.createElement(tag);
+      node.className = css;
+      node.textContent = value;
+      return node;
+    }
+    function button(text, css, enabled, handler) {
+      const node = element('button', text, css);
+      node.disabled = !enabled;
+      node.addEventListener('click', handler);
+      return node;
+    }
+
+    function render(data) {
+      $('total').textContent = data.total;
+      $('occupied').textContent = data.occupied;
+      $('free').textContent = data.free;
+      $('unknown').textContent = data.unknown;
+      const offline = data.rows.some(r => !r.online);
+      const unknownFire = data.rows.some(r => r.fire === null);
+      const banner = $('banner');
+      banner.className = 'banner ' + (data.anyFire ? 'danger' : offline || unknownFire ? 'warn' : 'ok');
+      banner.textContent = data.anyFire
+        ? '🚨 CẢNH BÁO CHÁY tại ' + data.rows.filter(r => r.fire).map(r => 'Hàng ' + r.row).join(', ')
+        : offline || unknownFire
+          ? '⚠ Chưa thể xác nhận toàn bộ bãi an toàn: có thiết bị offline/chưa gửi trạng thái'
+          : '✅ AN TOÀN - không có hàng nào báo cháy';
+
+      $('rows').replaceChildren();
+      $('roomControls').replaceChildren();
+      data.rows.forEach(row => {
+        const panel = element('section', '', 'panel');
+        panel.appendChild(element('h2', `Hàng ${row.row} (${row.deviceId})`));
+        panel.appendChild(element('p',
+          `${row.type === 'real' ? 'ESP32 thật' : 'Giả lập'} | ${row.online ? '● Online' : '○ Offline'} | ` +
+          `Cháy: ${fireLabel(row.fire)} | Relay: ${onOff(row.relay)} | LED/còi: ${onOff(row.buzzer)}`));
+        const slots = element('div', '', 'slots');
+        row.slots.forEach((value, i) => {
+          slots.appendChild(element('div', `Chỗ ${i + 1}: ${label(value)}`,
+            'slot ' + (value === 1 ? 'busy' : value === 0 ? 'free' : '')));
+        });
+        panel.appendChild(slots);
+        panel.appendChild(element('small', 'Cập nhật gần nhất: ' + clock(row.lastSeen), 'muted'));
+        $('rows').appendChild(panel);
+
+        // Sinh nut theo so hang tu snapshot; khong can hardcode 4 button.
+        const control = element('div', '', 'control-row');
+        control.appendChild(element('strong', `Hàng ${row.row} - ${row.deviceId} (${row.type === 'real' ? 'ESP32 thật' : 'giả lập'})`));
+        control.appendChild(document.createElement('br'));
+        control.appendChild(button(`Yêu cầu trạng thái Hàng ${row.row}`, '', row.online,
+          () => send(row.deviceId, 'request_status')));
+        if (row.type === 'sim') {
+          for (let i = 0; i < 3; i++) {
+            control.appendChild(button(`Đảo chỗ H${row.row}-${i + 1}`, 'secondary', row.online,
+              () => send(row.deviceId, 'toggle_slot', { slot: i })));
+          }
+          control.appendChild(button(`Giả lập CHÁY Hàng ${row.row}`, 'danger', row.online,
+            () => send(row.deviceId, 'set_fire', { fire: true })));
+          control.appendChild(button(`Tắt cháy Hàng ${row.row}`, 'secondary', row.online,
+            () => send(row.deviceId, 'set_fire', { fire: false })));
+        }
+        $('roomControls').appendChild(control);
+      });
+
+      $('history').replaceChildren();
+      data.history.forEach(item => {
+        $('history').appendChild(element('li', `[${clock(item.time)}] ${item.message}`));
+      });
+    }
+
+    socket.on('connect', () => {
+      $('connection').textContent = 'Web đã kết nối Server | socket.id: ' + socket.id;
+      socket.emit('register_web'); // Tham gia ROOM dashboard
+    });
+    socket.on('disconnect', () => {
+      $('connection').textContent = 'Web đã mất kết nối Server';
+      $('notice').textContent = 'Không thể điều khiển khi mất kết nối';
+      $('rows').replaceChildren();
+      $('roomControls').replaceChildren();
+      $('banner').textContent = '⚠ Web đang offline: dữ liệu trên màn hình không còn cập nhật';
+      $('banner').className = 'banner warn';
+    });
+    socket.on('snapshot', render);
+    socket.on('notice', msg => { $('notice').textContent = msg; });
+    socket.on('control_reply', data => {
+      $('notice').textContent = `${data.deviceId}: ${data.message} (${clock(data.time)})`;
+    });
+  </script>
+</body>
+</html>

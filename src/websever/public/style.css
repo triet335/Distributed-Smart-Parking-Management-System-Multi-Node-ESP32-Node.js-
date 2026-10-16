@@ -1,0 +1,646 @@
+/* ==========================================================================
+   CSS BÃI ĐỖ XE PHÂN TÁN (KC321 - ĐHCT)
+   ========================================================================== */
+
+:root {
+  --primary: #1e40af;
+  --primary-hover: #1d4ed8;
+  --success: #16a34a;
+  --success-bg: #dcfce7;
+  --warning: #d97706;
+  --warning-bg: #fef3c7;
+  --danger: #dc2626;
+  --danger-bg: #fee2e2;
+  --dark: #0f172a;
+  --text: #1e293b;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --card-bg: #ffffff;
+  --body-bg: #f8fafc;
+  --radius: 12px;
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--body-bg);
+  color: var(--text);
+  line-height: 1.5;
+  padding-bottom: 40px;
+}
+
+/* NAVBAR */
+.navbar {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: white;
+  padding: 14px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  font-size: 28px;
+}
+
+.nav-brand h1 {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.sub-text {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.nav-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-display-link {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  text-decoration: none;
+  padding: 7px 13px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  transition: all 0.2s;
+}
+
+.btn-display-link:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* FIRE BANNER */
+.fire-banner {
+  background: #b91c1c;
+  color: white;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  animation: pulseFire 1.2s infinite alternate;
+  border-bottom: 3px solid #7f1d1d;
+}
+
+.fire-banner.hidden {
+  display: none;
+}
+
+@keyframes pulseFire {
+  from { background-color: #b91c1c; }
+  to { background-color: #ef4444; }
+}
+
+.fire-icon {
+  font-size: 32px;
+  margin-right: 14px;
+}
+
+.fire-content {
+  flex: 1;
+}
+
+.fire-content h2 {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.fire-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* CONTAINER */
+.container {
+  max-width: 1200px;
+  margin: 18px auto;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* CARDS & COMMON */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+}
+
+.card-header h2, .card-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* STATS GRID */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+}
+
+.stat-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.stat-value {
+  font-size: 34px;
+  font-weight: 800;
+  margin: 4px 0;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.stat-value.occupied-text { color: var(--danger); }
+.stat-value.free-text { color: var(--success); }
+
+.stat-desc {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* ==========================================================================
+   GATE PANEL COMPACT (GỌN GÀNG, KHÔNG BỊ TRÀN HAY VƯỚNG)
+   ========================================================================== */
+.gate-panel-compact {
+  padding: 16px 20px;
+}
+
+.gate-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gate-header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.gate-compact-grid {
+  display: grid;
+  grid-template-columns: 240px 1.2fr 1fr;
+  gap: 14px;
+}
+
+.gate-col {
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.barrier-col {
+  align-items: center;
+  padding: 8px 12px;
+  background: #f1f5f9;
+}
+
+.barrier-svg-wrapper {
+  width: 100%;
+  max-width: 180px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.barrier-svg {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.barrier-status-pill {
+  font-size: 12px;
+  margin-top: 4px;
+  color: #334155;
+}
+
+.state-closed { color: var(--danger); }
+.state-opened { color: var(--success); }
+
+.col-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--muted);
+  letter-spacing: 0.4px;
+  margin-bottom: 6px;
+}
+
+.nfc-card-display, .env-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.uid-line, .action-line, .env-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.uid-tag {
+  font-family: monospace;
+  font-size: 14px;
+  background: #e2e8f0;
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: #0f172a;
+}
+
+.env-item .desc {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* ==========================================================================
+   SA BÀN KHU A & KHU B (TIÊU ĐIỂM CHÍNH CỦA BÃI XE)
+   ========================================================================== */
+.zones-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.zone-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.zone-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.zone-indicators {
+  display: flex;
+  gap: 6px;
+}
+
+.ind-badge {
+  font-size: 11px;
+  background: #f1f5f9;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.ind-badge.active-light { background: #fef08a; color: #854d0e; }
+.ind-badge.active-fire { background: #fee2e2; color: #b91c1c; animation: pulse 0.8s infinite alternate; }
+.ind-badge.active-pump { background: #e0f2fe; color: #0369a1; }
+
+.slots-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 12px 0 16px;
+}
+
+.slot-box {
+  border: 2px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 14px 6px;
+  text-align: center;
+  background: #ffffff;
+  transition: all 0.25s ease;
+}
+
+.slot-box.slot-free {
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.slot-box.slot-occupied {
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.slot-box.slot-offline {
+  border-color: #cbd5e1;
+  background: #f1f5f9;
+  opacity: 0.6;
+}
+
+.slot-num {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+}
+
+.slot-car {
+  font-size: 32px;
+  margin: 6px 0;
+}
+
+.slot-status {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.slot-free .slot-status { color: var(--success); }
+.slot-occupied .slot-status { color: var(--danger); }
+.slot-offline .slot-status { color: var(--muted); }
+
+.zone-controls {
+  margin-top: auto;
+  display: flex;
+  gap: 8px;
+}
+
+/* SIM PANEL */
+.sim-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.sim-zone {
+  background: #f8fafc;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px dashed #cbd5e1;
+}
+
+.sim-zone-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.sim-slots {
+  display: flex;
+  gap: 8px;
+}
+
+.sim-slot {
+  flex: 1;
+  text-align: center;
+  padding: 7px 4px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.sim-slot.free { background: #dcfce7; color: #166534; }
+.sim-slot.occupied { background: #fee2e2; color: #991b1b; }
+
+/* OTA PANEL */
+.ota-form {
+  display: flex;
+  gap: 14px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.form-group select, .form-group input {
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.ota-progress-box {
+  margin-top: 12px;
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 10px;
+  background: #e2e8f0;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--primary);
+  transition: width 0.3s;
+}
+
+.ota-status-text {
+  font-size: 12px;
+  margin-top: 4px;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* LOG TABLE */
+.log-table-container {
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.log-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.log-table th, .log-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.log-table th {
+  background: #f8fafc;
+  font-weight: 700;
+  position: sticky;
+  top: 0;
+}
+
+/* BADGES & BUTTONS */
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.badge-online { background: #22c55e; color: white; }
+.badge-offline { background: #64748b; color: white; }
+.badge-light { background: #fef08a; color: #854d0e; }
+.badge-dark { background: #1e293b; color: white; }
+.badge-gray { background: #e2e8f0; color: #475569; }
+
+.node-pill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.pill-online { background: #dcfce7; color: #15803d; }
+.pill-offline { background: #f1f5f9; color: #64748b; }
+
+.btn {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-secondary { background: #64748b; color: white; }
+.btn-secondary:hover { background: #475569; }
+.btn-outline { background: white; border: 1px solid var(--border); color: #334155; }
+.btn-outline:hover { background: #f1f5f9; }
+.btn-danger { background: var(--danger); color: white; }
+.btn-danger-dark { background: #7f1d1d; color: white; }
+.btn-warning { background: #d97706; color: white; }
+
+.muted-text { color: var(--muted); font-size: 12px; }
+.text-center { text-align: center; }
+
+/* FOOTER */
+.footer {
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 24px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 860px) {
+  .gate-compact-grid, .zones-grid, .sim-grid {
+    grid-template-columns: 1fr;
+  }
+  .navbar {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+}
+
+/* ==========================================================================
+   BẢNG ĐIỀU KHIỂN TRUNG TÂM (MASTER CONTROLS)
+   ========================================================================== */
+.master-control-card {
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #cbd5e1;
+}
+
+.master-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.master-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr 1fr;
+  gap: 14px;
+}
+
+.master-group {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.group-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+}
+
+.group-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.group-buttons .btn {
+  flex: 1;
+  min-width: 100px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+@media (max-width: 960px) {
+  .master-grid {
+    grid-template-columns: 1fr;
+  }
+}

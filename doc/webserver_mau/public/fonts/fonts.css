@@ -1,0 +1,22 @@
+/* Be Vietnam Pro — SIL Open Font License, see OFL-Be-Vietnam-Pro.txt. */
+@font-face {
+  font-family: "Be Vietnam Pro";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./be-vietnam-pro-400.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Be Vietnam Pro";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("./be-vietnam-pro-600.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Be Vietnam Pro";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./be-vietnam-pro-700.ttf") format("truetype");
+}

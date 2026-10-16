@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Parking - Hệ Thống Bãi Đỗ Xe Thông Minh Multi-Node</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="navbar">
+    <div class="nav-brand">
+      <div class="logo-icon">🅿️</div>
+      <div>
+        <h1>HỆ THỐNG GIÁM SÁT & QUẢN TRỊ BÃI ĐỖ XE PHÂN TÁN</h1>
+        <p class="sub-text">Học phần: Lập trình mạng (KC321) — Trường Đại học Cần Thơ</p>
+      </div>
+    </div>
+    <div class="nav-status">
+      <div id="ambientBadge" class="badge badge-light">☀️ Trời Sáng (Đèn tắt)</div>
+      <div id="connBadge" class="badge badge-online">🟢 Máy chủ trực tuyến</div>
+      <a href="/gate-display" target="_blank" class="btn-display-link">🖥️ Bảng Cổng Xe</a>
+    </div>
+  </header>
+
+  <!-- BANNER CẢNH BÁO CHÁY KHẨN CẤP -->
+  <div id="fireBanner" class="fire-banner hidden">
+    <div class="fire-icon">🚨</div>
+    <div class="fire-content">
+      <h2>BÁO ĐỘNG PCCC KHẨN CẤP! PHÁT HIỆN CHÁY TRONG BÃI XE!</h2>
+      <p id="fireDetail">Còi hú và đèn báo động toàn bãi đã kích hoạt. Hệ thống chữa cháy cục bộ đang vận hành.</p>
+    </div>
+    <div class="fire-actions">
+      <button id="btnEmergencyOpen" class="btn btn-warning">🔓 MỞ TOANG BARIE THOÁT HIỂM</button>
+      <button id="btnResetFire" class="btn btn-danger-dark">🔄 TẮT BÁO CHÁY / RESET HỆ THỐNG</button>
+    </div>
+  </div>
+
+  <main class="container">
+
+    <!-- KPI STATS CARDS -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-label">Tổng chỗ đỗ xe</span>
+        <div class="stat-value" id="kpiTotal">6</div>
+        <span class="stat-desc">Khu A (3) + Khu B (3)</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Đang đỗ (Có xe)</span>
+        <div class="stat-value occupied-text" id="kpiOccupied">0</div>
+        <span class="stat-desc">Vị trí quang trở bị che</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Chỗ còn trống</span>
+        <div class="stat-value free-text" id="kpiFree">6</div>
+        <span class="stat-desc" id="kpiFreeStatus">Sẵn sàng đón xe</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Lượt xe trong bãi</span>
+        <div class="stat-value" id="kpiVehicles">0</div>
+        <span class="stat-desc">Đã quẹt thẻ vào</span>
+      </div>
+    </section>
+
+    <!-- BẢNG ĐIỀU KHIỂN TỔNG HỢP (MASTER CONTROLS) -->
+    <section class="card master-control-card">
+      <div class="card-header">
+        <div class="master-title">
+          <h2>🎛️ BẢNG ĐIỀU KHIỂN TRUNG TÂM (MASTER CONTROLS)</h2>
+          <span class="muted-text">Bật tắt toàn bộ hệ thống đèn, điều phối Barie và vận hành PCCC</span>
+        </div>
+      </div>
+      <div class="master-grid">
+        <!-- Nhóm 1: Hệ thống chiếu sáng toàn bãi -->
+        <div class="master-group">
+          <div class="group-label">💡 CHIẾU SÁNG TOÀN BÃI</div>
+          <div class="group-buttons">
+            <button id="btnAllLightsOn" class="btn btn-primary">☀️ Bật tất cả đèn</button>
+            <button id="btnAllLightsOff" class="btn btn-outline">🌑 Tắt tất cả đèn</button>
+          </div>
+        </div>
+
+        <!-- Nhóm 2: Điều phối Barie Cổng -->
+        <div class="master-group">
+          <div class="group-label">🚪 THANH CHẮN BARIE CỔNG</div>
+          <div class="group-buttons">
+            <button id="btnMasterOpenAuto" class="btn btn-primary">▲ Mở Barie (Tự đóng 3.5s)</button>
+            <button id="btnMasterClose" class="btn btn-secondary">▼ Đóng Barie</button>
+            <button id="btnMasterEmergencyOpen" class="btn btn-warning">🔓 Mở toang thoát hiểm</button>
+          </div>
+        </div>
+
+        <!-- Nhóm 3: An toàn & PCCC -->
+        <div class="master-group">
+          <div class="group-label">🚨 AN TOÀN & PCCC</div>
+          <div class="group-buttons">
+            <button id="btnMasterTestFire" class="btn btn-danger">🔥 Thử nghiệm cháy</button>
+            <button id="btnMasterResetFire" class="btn btn-danger-dark">🔄 Reset PCCC</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HÀNG 1: CỔNG KIỂM SOÁT RA / VÀO (GỌN GÀNG, KHÔNG VƯỚNG) -->
+    <section class="card gate-panel-compact">
+      <div class="card-header">
+        <div class="gate-title-group">
+          <h2>🚪 CỔNG KIỂM SOÁT RA / VÀO</h2>
+          <span id="gateNodeStatus" class="node-pill pill-offline">ESP_GATE: Ngoại tuyến</span>
+        </div>
+        <div class="gate-header-actions">
+          <button id="btnOpenBarie" class="btn btn-sm btn-primary">▲ Mở Barie (3.5s)</button>
+          <button id="btnCloseBarie" class="btn btn-sm btn-secondary">▼ Đóng Barie</button>
+        </div>
+      </div>
+
+      <div class="gate-compact-grid">
+        <!-- Cột 1: Mô phỏng Barie SVG gọn gàng, nằm trọn trong khung -->
+        <div class="gate-col barrier-col">
+          <div class="barrier-svg-wrapper">
+            <svg viewBox="0 0 200 70" class="barrier-svg">
+              <line x1="10" y1="62" x2="190" y2="62" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" />
+              <rect x="25" y="28" width="18" height="34" rx="3" fill="#334155" />
+              <circle id="barrierLed" cx="34" cy="38" r="3" fill="#ef4444" />
+              <g id="barrierArmSvg" style="transform-origin: 34px 45px; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); transform: rotate(0deg);">
+                <line x1="34" y1="45" x2="110" y2="45" stroke="#ef4444" stroke-width="5" stroke-linecap="round" />
+                <line x1="34" y1="45" x2="110" y2="45" stroke="#ffffff" stroke-width="5" stroke-dasharray="10 10" stroke-linecap="round" />
+              </g>
+              <text x="135" y="58" font-size="24">🚗</text>
+            </svg>
+          </div>
+          <div class="barrier-status-pill">
+            Trạng thái Barie: <strong id="barrierText" class="state-closed">ĐANG ĐÓNG (0°)</strong>
+          </div>
+        </div>
+
+        <!-- Cột 2: Thông tin quẹt thẻ NFC -->
+        <div class="gate-col nfc-col">
+          <div class="col-title">THÔNG TIN QUẸT THẺ (PN532 UART)</div>
+          <div class="nfc-card-display">
+            <div class="uid-line">
+              <span class="label">Mã UID thẻ:</span>
+              <strong id="nfcUid" class="uid-tag">CHƯA QUẸT THẺ</strong>
+            </div>
+            <div class="action-line">
+              <span class="label">Hành động:</span>
+              <span id="nfcAction" class="badge badge-gray">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cột 3: Cảm biến sáng LDR Cổng & Âm thanh -->
+        <div class="gate-col env-col">
+          <div class="col-title">MÔI TRƯỜNG & HƯỚNG DẪN</div>
+          <div class="env-items">
+            <div class="env-item">
+              <span class="label">LDR Cổng:</span>
+              <span id="nfcLdrStatus" class="badge badge-light">Trời Sáng</span>
+            </div>
+            <div class="env-item">
+              <span class="label">Âm thanh còi:</span>
+              <span class="desc">1 bíp (Vào/Ra) | 3 bíp (Từ chối/Đầy)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HÀNG 2: SA BÀN 2 KHU VỰC VẬT LÝ (KHU A & KHU B) -->
+    <section class="zones-grid">
+
+      <!-- KHU A -->
+      <div class="card zone-card">
+        <div class="card-header">
+          <div class="zone-title">
+            <h3>KHU A (DÃY 1)</h3>
+            <span id="zoneAStatus" class="node-pill pill-offline">ESP_ZONE_A: Offline</span>
+          </div>
+          <div class="zone-indicators">
+            <span id="lightBadgeA" class="ind-badge">💡 Đèn: Tắt</span>
+            <span id="fireBadgeA" class="ind-badge">🚨 PCCC: An toàn</span>
+            <span id="pumpBadgeA" class="ind-badge">💧 Bơm: Tắt</span>
+          </div>
+        </div>
+
+        <!-- 3 Ô ĐỖ XE KHU A -->
+        <div class="slots-container">
+          <div class="slot-box" id="slotBox1">
+            <div class="slot-num">Ô SỐ 1</div>
+            <div class="slot-car" id="slotCar1">🅿️</div>
+            <div class="slot-status" id="slotStatus1">TRỐNG</div>
+          </div>
+          <div class="slot-box" id="slotBox2">
+            <div class="slot-num">Ô SỐ 2</div>
+            <div class="slot-car" id="slotCar2">🅿️</div>
+            <div class="slot-status" id="slotStatus2">TRỐNG</div>
+          </div>
+          <div class="slot-box" id="slotBox3">
+            <div class="slot-num">Ô SỐ 3</div>
+            <div class="slot-car" id="slotCar3">🅿️</div>
+            <div class="slot-status" id="slotStatus3">TRỐNG</div>
+          </div>
+        </div>
+
+        <!-- Điều khiển nhanh Khu A -->
+        <div class="zone-controls">
+          <button id="btnToggleLightA" class="btn btn-sm btn-outline">💡 Bật/Tắt Đèn Khu A</button>
+          <button id="btnTestFireA" class="btn btn-sm btn-danger">🔥 Thử nghiệm Cháy A</button>
+        </div>
+      </div>
+
+      <!-- KHU B -->
+      <div class="card zone-card">
+        <div class="card-header">
+          <div class="zone-title">
+            <h3>KHU B (DÃY 2)</h3>
+            <span id="zoneBStatus" class="node-pill pill-offline">ESP_ZONE_B: Offline</span>
+          </div>
+          <div class="zone-indicators">
+            <span id="lightBadgeB" class="ind-badge">💡 Đèn: Tắt</span>
+            <span id="fireBadgeB" class="ind-badge">🚨 PCCC: An toàn</span>
+            <span id="pumpBadgeB" class="ind-badge">💧 Bơm: Tắt</span>
+          </div>
+        </div>
+
+        <!-- 3 Ô ĐỖ XE KHU B -->
+        <div class="slots-container">
+          <div class="slot-box" id="slotBox4">
+            <div class="slot-num">Ô SỐ 4</div>
+            <div class="slot-car" id="slotCar4">🅿️</div>
+            <div class="slot-status" id="slotStatus4">TRỐNG</div>
+          </div>
+          <div class="slot-box" id="slotBox5">
+            <div class="slot-num">Ô SỐ 5</div>
+            <div class="slot-car" id="slotCar5">🅿️</div>
+            <div class="slot-status" id="slotStatus5">TRỐNG</div>
+          </div>
+          <div class="slot-box" id="slotBox6">
+            <div class="slot-num">Ô SỐ 6</div>
+            <div class="slot-car" id="slotCar6">🅿️</div>
+            <div class="slot-status" id="slotStatus6">TRỐNG</div>
+          </div>
+        </div>
+
+        <!-- Điều khiển nhanh Khu B -->
+        <div class="zone-controls">
+          <button id="btnToggleLightB" class="btn btn-sm btn-outline">💡 Bật/Tắt Đèn Khu B</button>
+          <button id="btnTestFireB" class="btn btn-sm btn-danger">🔥 Thử nghiệm Cháy B</button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- HÀNG 3: MÔ PHỎNG MỞ RỘNG (KHU C & KHU D) -->
+    <section class="card sim-panel">
+      <div class="card-header">
+        <h3>MỞ RỘNG QUY MÔ: KHU C & KHU D (NODE ẢO MÔ PHỎNG TẢI)</h3>
+        <span class="muted-text">Chứng minh kiến trúc Socket Rooms có khả năng mở rộng không giới hạn</span>
+      </div>
+      <div class="sim-grid">
+        <div class="sim-zone">
+          <div class="sim-zone-header"><strong>Khu C (Mô phỏng 3 ô)</strong> <span id="simStatusC" class="badge badge-gray">Chưa chạy sim</span></div>
+          <div class="sim-slots" id="simSlotsC">
+            <span class="sim-slot free" id="slotC1">Ô 7: Trống</span>
+            <span class="sim-slot free" id="slotC2">Ô 8: Trống</span>
+            <span class="sim-slot free" id="slotC3">Ô 9: Trống</span>
+          </div>
+        </div>
+        <div class="sim-zone">
+          <div class="sim-zone-header"><strong>Khu D (Mô phỏng 3 ô)</strong> <span id="simStatusD" class="badge badge-gray">Chưa chạy sim</span></div>
+          <div class="sim-slots" id="simSlotsD">
+            <span class="sim-slot free" id="slotD1">Ô 10: Trống</span>
+            <span class="sim-slot free" id="slotD2">Ô 11: Trống</span>
+            <span class="sim-slot free" id="slotD3">Ô 12: Trống</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HÀNG 4: NẠP FIRMWARE TỪ XA QUA WEB OTA (STREAM & PIPE - CHƯƠNG 2) -->
+    <section class="card ota-panel">
+      <div class="card-header">
+        <h3>NÂNG CẤP FIRMWARE KHÔNG DÂY QUA WEB OTA (NODE.JS STREAM & PIPE)</h3>
+        <span class="muted-text">fs.createReadStream (highWaterMark: 1024) -> pipe() -> ESP32 Update.h</span>
+      </div>
+      <form id="otaForm" class="ota-form">
+        <div class="form-group">
+          <label for="otaNodeSelect">Chọn Node ESP32:</label>
+          <select id="otaNodeSelect">
+            <option value="ESP_GATE">Node Cổng (ESP_GATE)</option>
+            <option value="ESP_ZONE_A">Khu A (ESP_ZONE_A)</option>
+            <option value="ESP_ZONE_B">Khu B (ESP_ZONE_B)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="otaFileInput">Chọn file firmware (.bin):</label>
+          <input type="file" id="otaFileInput" accept=".bin" required>
+        </div>
+        <button type="submit" id="btnUploadOta" class="btn btn-primary">🚀 Bắt đầu Stream OTA</button>
+      </form>
+      <div id="otaProgressBox" class="ota-progress-box hidden">
+        <div class="progress-bar-bg">
+          <div id="otaProgressBar" class="progress-bar-fill" style="width: 0%"></div>
+        </div>
+        <p id="otaStatusText" class="ota-status-text">Đang chuẩn bị luồng Stream...</p>
+      </div>
+    </section>
+
+    <!-- HÀNG 5: NHẬT KÝ SỰ KIỆN THỜI GIAN THỰC -->
+    <section class="card log-panel">
+      <div class="card-header">
+        <h3>NHẬT KÝ HOẠT ĐỘNG THỜI GIAN THỰC (ACTIVITY LOG)</h3>
+        <button id="btnExportCsv" class="btn btn-sm btn-outline">📥 Xuất file CSV</button>
+      </div>
+      <div class="log-table-container">
+        <table class="log-table">
+          <thead>
+            <tr>
+              <th>Thời gian</th>
+              <th>Phân loại</th>
+              <th>Nội dung sự kiện</th>
+            </tr>
+          </thead>
+          <tbody id="logTbody">
+            <tr><td colspan="3" class="text-center muted-text">Đang tải lịch sử sự kiện...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>Đồ án học phần Lập trình mạng (KC321) — Giảng viên: TS. GVC. Nguyễn Văn Khanh</p>
+    <p>Nhóm 3: Lê Minh Triết, Thạch Thảo, Trương Đình Trí, Đỗ Thanh Đức (Đại học Cần Thơ)</p>
+  </footer>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

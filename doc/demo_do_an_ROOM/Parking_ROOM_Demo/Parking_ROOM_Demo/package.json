@@ -1,0 +1,14 @@
+{
+  "name": "parking-room-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mo hinh bai do xe thong minh 2 hang voi Socket.IO ROOM",
+  "scripts": {
+    "start": "node server.js",
+    "sim": "node esp32_gialap_hang2.js"
+  },
+  "dependencies": {
+    "socket.io": "^2.4.1",
+    "socket.io-client": "2.4.0"
+  }
+}
